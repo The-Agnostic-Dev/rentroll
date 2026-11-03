@@ -1,0 +1,28 @@
+<% content_for :title, "Renewals" %>
+<h1>Lease renewals</h1>
+<p class="muted">Leases ending in the next <%= @window %> days. Call these tenants early so you know who is renewing and which units to advertise.</p>
+
+<%= form_with url: renewals_path, method: :get, class: "filter-bar" do |form| %>
+  <%= form.label :days, "Look ahead" %>
+  <%= form.select :days, [ [ "30 days", 30 ], [ "60 days", 60 ], [ "90 days", 90 ], [ "6 months", 180 ] ], { selected: @window },
+        onchange: "this.form.requestSubmit()" %>
+<% end %>
+
+<table data-testid="renewals">
+  <thead>
+    <tr><th>Tenant</th><th>Phone</th><th>Unit</th><th>Lease ends</th><th></th><th class="num">Rent</th></tr>
+  </thead>
+  <tbody>
+    <% @leases.each do |lease| %>
+      <tr>
+        <td><%= link_to lease.tenant.full_name, lease_path(lease) %></td>
+        <td><%= lease.tenant.phone %></td>
+        <td><%= lease.unit.name %></td>
+        <td class="end-on"><%= date_cell(lease.end_on) %></td>
+        <td class="muted"><%= expiry_phrase(lease) %></td>
+        <td class="num"><%= lease.describe_rent %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+<% if @leases.empty? %><p class="muted">No leases end in this window.</p><% end %>

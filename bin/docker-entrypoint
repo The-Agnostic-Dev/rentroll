@@ -1,0 +1,8 @@
+#!/bin/bash -e
+# Bring the database up to date and reload the demo data before the server starts.
+if [ "${@: -4:1}" == "server" ] || [ "$2" == "server" ]; then
+  bin/rails db:migrate
+  bin/rails db:seed
+fi
+
+exec "$@"

@@ -1,0 +1,25 @@
+<%= form_with model: tenant do |form| %>
+  <%= render "shared/errors", record: tenant %>
+  <div class="field">
+    <%= form.label :full_name %>
+    <%= form.text_field :full_name, required: true %>
+  </div>
+  <div class="field">
+    <%= form.label :phone, "Phone number" %>
+    <%= form.telephone_field :phone, placeholder: "0803 123 4567" %>
+  </div>
+  <div class="field">
+    <%= form.label :email %>
+    <%= form.email_field :email %>
+  </div>
+  <div class="field">
+    <%= form.label :next_of_kin, "Next of kin (name and phone)" %>
+    <%= form.text_field :next_of_kin %>
+  </div>
+  <div class="field">
+    <%= form.label :notes %>
+    <%= form.text_area :notes, rows: 3 %>
+  </div>
+  <%= form.submit "Save tenant", class: "button" %>
+  <%= link_to "Cancel", tenants_path %>
+<% end %>

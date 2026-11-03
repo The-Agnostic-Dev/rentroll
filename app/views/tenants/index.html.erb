@@ -1,0 +1,32 @@
+<% content_for :title, "Tenants" %>
+<div class="heading-row">
+  <h1>Tenants</h1>
+  <%= link_to "Add tenant", new_tenant_path, class: "button" %>
+</div>
+
+<div data-controller="table-filter">
+  <div class="filter-bar">
+    <input type="search" placeholder="Find a tenant by name, phone or unit" aria-label="Find a tenant"
+           data-table-filter-target="input" data-action="input->table-filter#filter">
+    <button type="button" class="link-button" data-action="table-filter#clear">Clear</button>
+    <span class="muted" data-table-filter-target="count"></span>
+  </div>
+
+  <table data-testid="tenants">
+    <thead>
+      <tr><th>Name</th><th>Phone</th><th>Email</th><th>Renting</th><th></th></tr>
+    </thead>
+    <tbody>
+      <% @tenants.each do |tenant| %>
+        <tr data-table-filter-target="row" data-filter-text="<%= tenant_filter_text(tenant) %>">
+          <td class="tenant-name"><%= tenant.full_name %></td>
+          <td class="tenant-phone"><%= tenant.phone %></td>
+          <td><%= tenant.email %></td>
+          <td><%= tenant_units(tenant) %></td>
+          <td><%= link_to "Edit", edit_tenant_path(tenant) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <p class="muted" data-table-filter-target="empty" hidden>No tenant matches that search.</p>
+</div>

@@ -1,0 +1,107 @@
+<% content_for :title, "#{@lease.tenant.full_name}, #{@lease.unit.label}" %>
+<p class="crumbs"><%= link_to @lease.unit.property.name, property_path(@lease.unit.property) %></p>
+<div class="heading-row">
+  <h1><%= @lease.tenant.full_name %> <span class="muted">· <%= @lease.unit.label %></span></h1>
+  <%= badge(@lease.active? ? "Active" : "Ended") %>
+</div>
+
+<section class="tiles">
+  <div class="tile">
+    <span class="tile-label">Rent</span>
+    <strong><%= @lease.describe_rent %></strong>
+    <small><%= short_date(@lease.start_on) %> to <%= short_date(@lease.end_on) %><%= ", moved out #{short_date(@lease.ended_on)}" if @lease.ended_on %></small>
+  </div>
+  <div class="tile" data-testid="lease-balance">
+    <span class="tile-label">Balance</span>
+    <strong><%= naira(@ledger.balance.abs) %></strong>
+    <small><%= badge(@ledger.status) %>
+      <% if @ledger.days_late.positive? %><%= pluralize(@ledger.days_late, "day") %> late<% end %></small>
+  </div>
+  <div class="tile">
+    <span class="tile-label">Paid to date</span>
+    <strong><%= naira(@ledger.total_paid) %></strong>
+    <small>Deposit held: <%= naira(@lease.deposit) %></small>
+  </div>
+</section>
+
+<div class="columns">
+  <section class="card">
+    <h2>Rent schedule</h2>
+    <p class="muted">Rent is due in advance on each date below and counts as late <%= Lease::GRACE_DAYS %> days after it falls due.</p>
+    <table data-testid="schedule">
+      <thead><tr><th>#</th><th>Due</th><th>Covers until</th><th class="num">Rent</th><th class="num">Owing</th><th>Status</th></tr></thead>
+      <tbody>
+        <% @ledger.lines.each do |line| %>
+          <tr>
+            <td><%= line.period.number %></td>
+            <td class="due-on"><%= date_cell(line.period.due_on) %></td>
+            <td><%= date_cell(line.period.covers_until) %></td>
+            <td class="num"><%= naira(line.period.amount) %></td>
+            <td class="num"><%= naira(line.outstanding) %></td>
+            <td><%= badge(line.status) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="card">
+    <% if @lease.active? %>
+      <h2>Record a payment</h2>
+      <%= form_with model: [ @lease, @payment ], id: "record-payment" do |form| %>
+        <div class="field">
+          <%= form.label :amount, "Amount (₦)" %>
+          <%= form.number_field :amount, min: 1, required: true %>
+        </div>
+        <div class="field">
+          <%= form.label :paid_on, "Date received" %>
+          <%= form.date_field :paid_on, required: true %>
+        </div>
+        <div class="field">
+          <%= form.label :payment_method, "Paid by" %>
+          <%= form.select :payment_method, Payment::METHODS.invert %>
+        </div>
+        <div class="field">
+          <%= form.label :reference, "Bank reference or note" %>
+          <%= form.text_field :reference %>
+        </div>
+        <p class="muted">This payment will be receipt <strong class="next-receipt"><%= @payment.receipt_no %></strong>.</p>
+        <%= form.hidden_field :receipt_no %>
+        <%= form.submit "Record payment", class: "button" %>
+      <% end %>
+    <% end %>
+
+    <h2>Payments</h2>
+    <table data-testid="lease-payments">
+      <thead><tr><th>Receipt</th><th>Date</th><th class="num">Amount</th><th>Paid by</th></tr></thead>
+      <tbody>
+        <% @payments.each do |payment| %>
+          <tr class="<%= "voided" if payment.voided? %>">
+            <td class="receipt-no"><%= link_to payment.receipt_no, payment_path(payment) %></td>
+            <td><%= short_date(payment.paid_on) %></td>
+            <td class="num amount"><%= naira(payment.amount) %></td>
+            <td><%= payment.voided? ? badge("Voided") : payment.method_label %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <% if @payments.empty? %><p class="muted">No payments yet.</p><% end %>
+
+    <% if @lease.active? %>
+      <details class="danger-zone">
+        <summary>Tenant moving out?</summary>
+        <%= form_with model: @lease, url: end_lease_path(@lease), method: :patch do |form| %>
+          <div class="field">
+            <%= form.label :ended_on, "Move-out date" %>
+            <%= form.date_field :ended_on, value: Date.current %>
+          </div>
+          <%= form.submit "End lease", class: "button button-danger" %>
+        <% end %>
+      </details>
+    <% end %>
+    <% if @payments.empty? %>
+      <%= button_to "Delete lease", lease_path(@lease), method: :delete, class: "link-button danger",
+            form: { data: { turbo_confirm: "Delete this lease? Only do this for a lease entered by mistake." } } %>
+    <% end %>
+  </section>
+</div>

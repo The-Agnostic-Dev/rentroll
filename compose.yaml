@@ -1,0 +1,9 @@
+services:
+  web:
+    build: .
+    ports:
+      - "5112:5112"
+    environment:
+      # Demo-only secret; set your own for anything real.
+      SECRET_KEY_BASE: "rentroll-demo-secret-key-base-0f5c2a8e7b1d4c3f9a6e2b8d7c1f0a3e5b9d2c4f6a8e0b1d3c5f7a9e2b4d6c8f"
+      RENTROLL_DB: /rails/storage/production.sqlite3

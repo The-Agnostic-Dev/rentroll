@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title><%= [ content_for(:title), "Rentroll" ].compact.join(" · ") %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="application-name" content="Rentroll">
+    <%= csrf_meta_tags %>
+    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+  <body>
+    <header class="topbar">
+      <%= link_to "Rentroll", root_path, class: "brand" %>
+      <nav>
+        <%= nav_link "Dashboard", root_path %>
+        <%= nav_link "Properties", properties_path %>
+        <%= nav_link "Tenants", tenants_path %>
+        <%= nav_link "Payments", payments_path %>
+        <%= nav_link "Arrears", arrears_path %>
+        <%= nav_link "Renewals", renewals_path %>
+      </nav>
+      <div class="who">
+        <span><%= current_user.name %></span>
+        <%= button_to "Sign out", session_path, method: :delete, class: "link-button" %>
+      </div>
+    </header>
+    <main>
+      <%= render "shared/flash" %>
+      <%= yield %>
+    </main>
+  </body>
+</html>

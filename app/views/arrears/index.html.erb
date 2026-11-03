@@ -1,0 +1,30 @@
+<% content_for :title, "Arrears" %>
+<h1>Arrears</h1>
+<p class="muted">Tenants owing rent today, largest first. Rent counts as late <%= Lease::GRACE_DAYS %> days after its due date; until then it shows as "In grace".</p>
+
+<%= form_with url: arrears_path, method: :get, class: "filter-bar" do |form| %>
+  <%= form.label :property_id, "Property" %>
+  <%= form.select :property_id, @properties.map { |p| [ p.name, p.id ] }, { include_blank: "All properties", selected: params[:property_id] },
+        onchange: "this.form.requestSubmit()" %>
+<% end %>
+
+<table data-testid="arrears">
+  <thead>
+    <tr><th>Tenant</th><th>Unit</th><th>Oldest unpaid</th><th>Status</th><th class="num">Owing</th></tr>
+  </thead>
+  <tbody>
+    <% @rows.each do |ledger| %>
+      <tr>
+        <td><%= link_to ledger.lease.tenant.full_name, lease_path(ledger.lease) %></td>
+        <td><%= ledger.lease.unit.name %></td>
+        <td><%= date_cell(ledger.oldest_unpaid&.period&.due_on) %></td>
+        <td><%= badge(ledger.status) %><%= " #{pluralize(ledger.days_late, 'day')}" if ledger.days_late.positive? %></td>
+        <td class="num"><%= naira(ledger.arrears) %></td>
+      </tr>
+    <% end %>
+  </tbody>
+  <tfoot>
+    <tr><th colspan="4">Total owing</th><th class="num"><%= naira(@total) %></th></tr>
+  </tfoot>
+</table>
+<% if @rows.empty? %><p class="muted">Nobody owes rent today.</p><% end %>

@@ -1,0 +1,26 @@
+<% content_for :title, @property.name %>
+<p class="crumbs"><%= link_to "Properties", properties_path %></p>
+<h1><%= @property.name %></h1>
+<p class="muted"><%= @property.address %><%= ", #{@property.area}" if @property.area %></p>
+<p class="summary" data-testid="occupancy-summary">
+  <%= @units.vacant.count %> of <%= pluralize(@units.size, "unit") %> occupied
+</p>
+
+<table data-testid="units">
+  <thead>
+    <tr><th>Unit</th><th>Type</th><th>Status</th><th>Tenant</th><th class="num">Rent</th><th></th></tr>
+  </thead>
+  <tbody>
+    <% @units.each do |unit| %>
+      <% lease = unit.leases.select(&:active?).max_by(&:start_on) %>
+      <tr data-unit-id="<%= unit.id %>">
+        <td class="unit-label"><%= unit.label %></td>
+        <td><%= unit.kind.capitalize %></td>
+        <td class="unit-status"><%= badge(unit.status.capitalize) %></td>
+        <td><%= lease ? link_to(lease.tenant.full_name, lease_path(lease)) : tag.span("None", class: "muted") %></td>
+        <td class="num"><%= lease ? lease.describe_rent : "#{naira(unit.listed_rent)} listed" %></td>
+        <td><%= link_to "New lease", new_lease_path(unit_id: unit.id) unless unit.occupied? %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

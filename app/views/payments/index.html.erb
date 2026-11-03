@@ -1,0 +1,38 @@
+<% content_for :title, "Payments" %>
+<h1>Payments</h1>
+
+<%= form_with url: payments_path, method: :get, class: "filter-bar" do |form| %>
+  <%= form.label :payment_method, "Paid by" %>
+  <%= form.select :payment_method, Payment::METHODS.invert, { include_blank: "All methods", selected: @feed.payment_method },
+        onchange: "this.form.requestSubmit()" %>
+  <noscript><%= form.submit "Filter" %></noscript>
+<% end %>
+
+<p class="summary" data-testid="payments-total">
+  <%= pluralize(@feed.total_count, "payment") %>, <%= naira(@feed.total_received) %> received (voided receipts not counted)
+</p>
+
+<table data-testid="payments">
+  <thead>
+    <tr><th>Receipt</th><th>Date</th><th>Tenant</th><th>Unit</th><th>Paid by</th><th class="num">Amount</th></tr>
+  </thead>
+  <tbody>
+    <% @feed.payments.each do |payment| %>
+      <tr class="<%= "voided" if payment.voided? %>">
+        <td class="receipt-no"><%= link_to payment.receipt_no, payment_path(payment) %></td>
+        <td><%= short_date(payment.paid_on) %></td>
+        <td><%= payment.lease.tenant.full_name %></td>
+        <td><%= payment.lease.unit.name %></td>
+        <td><%= payment.voided? ? badge("Voided") : payment.method_label %></td>
+        <td class="num"><%= naira(payment.amount) %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<nav class="pager">
+  <%= link_to "Newest payments", payments_path(payment_method: @feed.payment_method) unless @feed.first_page? %>
+  <% if @feed.next_cursor %>
+    <%= link_to "Older payments", payments_path(before: @feed.next_cursor, payment_method: @feed.payment_method), rel: "next" %>
+  <% end %>
+</nav>

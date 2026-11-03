@@ -1,0 +1,12 @@
+<% content_for :title, "Properties" %>
+<h1>Properties</h1>
+
+<div class="grid">
+  <% @properties.each do |property| %>
+    <article class="card">
+      <h2><%= link_to property.name, property_path(property) %></h2>
+      <p class="muted"><%= property.address %><%= ", #{property.area}" if property.area %></p>
+      <p><%= pluralize(property.units.size, "unit") %>, <%= property.occupancy_rate %>% let</p>
+    </article>
+  <% end %>
+</div>

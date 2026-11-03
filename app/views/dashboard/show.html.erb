@@ -1,0 +1,62 @@
+<% content_for :title, "Dashboard" %>
+<h1>Dashboard</h1>
+<p class="muted"><%= l(Date.current, format: :long) %></p>
+
+<section class="tiles">
+  <div class="tile" data-testid="expected">
+    <span class="tile-label">Expected this month</span>
+    <strong><%= naira(@summary[:expected_this_month]) %></strong>
+    <small>Rent falling due in <%= Date.current.strftime("%B") %>. Annual leases count in the month their year starts.</small>
+  </div>
+  <div class="tile" data-testid="collected">
+    <span class="tile-label">Collected this month</span>
+    <strong><%= naira(@summary[:collected_this_month]) %></strong>
+    <small>Payments received since <%= short_date(Date.current.beginning_of_month) %>, voided receipts excluded.</small>
+  </div>
+  <div class="tile" data-testid="arrears">
+    <span class="tile-label">Outstanding arrears</span>
+    <strong><%= naira(@summary[:arrears_total]) %></strong>
+    <small><%= pluralize(@summary[:late_count], "tenant") %> past the <%= Lease::GRACE_DAYS %>-day grace period. <%= link_to "See arrears", arrears_path %></small>
+  </div>
+  <div class="tile" data-testid="occupancy">
+    <span class="tile-label">Occupancy</span>
+    <strong><%= @summary[:occupied_units] %> / <%= @summary[:total_units] %></strong>
+    <small>units let across all properties.</small>
+  </div>
+</section>
+
+<div class="columns">
+  <section class="card">
+    <h2>Leases up for renewal</h2>
+    <% if @renewals.any? %>
+      <ul class="plain" data-testid="dashboard-renewals">
+        <% @renewals.each do |lease| %>
+          <li>
+            <%= link_to lease.tenant.full_name, lease_path(lease) %>, <%= lease.unit.name %>
+            <span class="muted">(<%= expiry_phrase(lease) %>, <%= short_date(lease.end_on) %>)</span>
+          </li>
+        <% end %>
+      </ul>
+      <p><%= link_to "All renewals", renewals_path %></p>
+    <% else %>
+      <p class="muted">No leases end in the next <%= RenewalsController::WINDOW_DAYS %> days.</p>
+    <% end %>
+  </section>
+
+  <section class="card">
+    <h2>Recent payments</h2>
+    <table>
+      <tbody>
+        <% @recent_payments.each do |payment| %>
+          <tr>
+            <td><%= link_to payment.receipt_no, payment_path(payment) %></td>
+            <td><%= payment.lease.tenant.full_name %></td>
+            <td class="num"><%= naira(payment.amount) %></td>
+            <td><%= payment.voided? ? badge("Voided") : short_date(payment.paid_on) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+    <p><%= link_to "All payments", payments_path %></p>
+  </section>
+</div>

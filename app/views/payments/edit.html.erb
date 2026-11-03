@@ -1,0 +1,25 @@
+<% content_for :title, "Correct #{@payment.receipt_no}" %>
+<p class="crumbs"><%= link_to "Receipt #{@payment.receipt_no}", payment_path(@payment) %></p>
+<h1>Correct payment <%= @payment.receipt_no %></h1>
+<section class="card narrow">
+  <%= form_with model: @payment do |form| %>
+    <%= render "shared/errors", record: @payment %>
+    <div class="field">
+      <%= form.label :amount, "Amount (₦)" %>
+      <%= form.number_field :amount, min: 1, step: "0.01", required: true %>
+    </div>
+    <div class="field">
+      <%= form.label :paid_on, "Date received" %>
+      <%= form.date_field :paid_on, required: true %>
+    </div>
+    <div class="field">
+      <%= form.label :payment_method, "Paid by" %>
+      <%= form.select :payment_method, Payment::METHODS.invert %>
+    </div>
+    <div class="field">
+      <%= form.label :reference, "Bank reference or note" %>
+      <%= form.text_field :reference %>
+    </div>
+    <%= form.submit "Save correction", class: "button" %>
+  <% end %>
+</section>

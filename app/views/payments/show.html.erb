@@ -1,0 +1,33 @@
+<% content_for :title, "Receipt #{@payment.receipt_no}" %>
+<% lease = @payment.lease %>
+<p class="crumbs no-print"><%= link_to "Back to lease", lease_path(lease) %></p>
+
+<article class="receipt card" data-controller="print">
+  <header>
+    <h1>Rent receipt</h1>
+    <p class="receipt-number"><%= @payment.receipt_no %></p>
+    <% if @payment.voided? %><p><%= badge("Voided") %> on <%= short_date(@payment.voided_at.to_date) %></p><% end %>
+  </header>
+  <dl>
+    <dt>Received from</dt><dd><%= lease.tenant.full_name %></dd>
+    <dt>For</dt><dd><%= lease.unit.name %>, <%= lease.unit.property.address %></dd>
+    <dt>Amount</dt><dd class="receipt-amount"><%= naira(@payment.amount) %></dd>
+    <dt>Date received</dt><dd><%= l(@payment.paid_on, format: :long) %></dd>
+    <dt>Paid by</dt><dd><%= @payment.method_label %><%= " (#{@payment.reference})" if @payment.reference.present? %></dd>
+    <dt>Rent</dt><dd><%= lease.describe_rent %></dd>
+    <% if @payment.balance_after %>
+      <dt><%= @payment.balance_after.negative? ? "In credit after this payment" : "Still owing after this payment" %></dt>
+      <dd><%= naira(@payment.balance_after.abs) %></dd>
+    <% end %>
+  </dl>
+  <div class="no-print actions">
+    <button type="button" class="button" data-action="print#print">Print receipt</button>
+    <% unless @payment.voided? %>
+      <%= link_to "Correct this payment", edit_payment_path(@payment) %>
+      <%= button_to "Void receipt", void_payment_path(@payment), method: :patch, class: "link-button danger",
+            form: { data: { turbo_confirm: "Void receipt #{@payment.receipt_no}? It will stop counting towards the rent." } } %>
+    <% end %>
+    <%= button_to "Delete", payment_path(@payment), method: :delete, class: "link-button danger",
+          form: { data: { turbo_confirm: "Delete this payment for good? Use this only for an entry made by mistake." } } %>
+  </div>
+</article>

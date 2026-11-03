@@ -1,0 +1,39 @@
+<% content_for :title, "New lease" %>
+<h1>New lease</h1>
+<section class="card narrow">
+  <%= form_with model: @lease do |form| %>
+    <%= render "shared/errors", record: @lease %>
+    <div class="field">
+      <%= form.label :unit_id, "Unit" %>
+      <%= form.collection_select :unit_id, Unit.vacant.includes(:property).sort_by(&:name), :id, :name, prompt: "Choose a vacant unit" %>
+    </div>
+    <div class="field">
+      <%= form.label :tenant_id, "Tenant" %>
+      <%= form.collection_select :tenant_id, Tenant.order(:full_name), :id, :full_name, prompt: "Choose a tenant" %>
+      <small><%= link_to "Add a new tenant first", new_tenant_path %></small>
+    </div>
+    <div class="field">
+      <%= form.label :frequency, "Rent is paid" %>
+      <%= form.select :frequency, [ [ "Yearly", "annual" ], [ "Monthly", "monthly" ] ] %>
+    </div>
+    <div class="field">
+      <%= form.label :rent_amount, "Rent per period (₦)" %>
+      <%= form.number_field :rent_amount, min: 0, step: "0.01", required: true %>
+    </div>
+    <div class="field">
+      <%= form.label :deposit, "Caution deposit (₦)" %>
+      <%= form.number_field :deposit, min: 0, step: "0.01" %>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <%= form.label :start_on, "Starts" %>
+        <%= form.date_field :start_on, required: true %>
+      </div>
+      <div class="field">
+        <%= form.label :end_on, "Ends" %>
+        <%= form.date_field :end_on, required: true %>
+      </div>
+    </div>
+    <%= form.submit "Create lease", class: "button" %>
+  <% end %>
+</section>
