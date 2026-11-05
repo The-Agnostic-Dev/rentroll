@@ -67,6 +67,7 @@ class DashboardSummaryTest < ActiveSupport::TestCase
 
     @lease.end_early!(on: Date.current)
     assert_equal 0, DashboardSummary.current[:occupied_units]
+    assert_not @unit.reload.occupied?
 
     expired_unit = @property.units.create!(label: "Expired Unit", kind: "flat", listed_rent: 100000)
     expired_tenant = Tenant.create!(full_name: "Expired Tenant", phone: "0800 000 0001")
