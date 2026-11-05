@@ -25,10 +25,11 @@ class LeaseTest < ActiveSupport::TestCase
     assert unit.reload.occupied?
   end
 
-  test "renewals are leases ending inside the window" do
-    soon = create_lease(start_on: Date.current - 300, end_on: Date.current + 20)
-    create_lease(unit: create_unit(label: "Flat 2"), start_on: Date.current - 10, end_on: Date.current + 355)
+  test "renewals are leases ending inside the window and sorted by end date ascending" do
+    earlier = create_lease(start_on: Date.current - 300, end_on: Date.current + 20)
+    later = create_lease(unit: create_unit(label: "Flat 2"), start_on: Date.current - 300, end_on: Date.current + 40)
+    create_lease(unit: create_unit(label: "Flat 3"), start_on: Date.current - 10, end_on: Date.current + 355)
 
-    assert_equal [ soon ], Lease.up_for_renewal(90).to_a
+    assert_equal [ earlier, later ], Lease.up_for_renewal(90).to_a
   end
 end
