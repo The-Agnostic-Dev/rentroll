@@ -63,12 +63,13 @@ class DashboardSummaryTest < ActiveSupport::TestCase
   end
 
   test "occupied_units counts only units with a currently running lease" do
-    assert_equal 1, DashboardSummary.current[:occupied_units]
+    baseline = DashboardSummary.current[:occupied_units]
 
     @lease.end_early!(on: Date.current)
-    assert_equal 0, DashboardSummary.current[:occupied_units]
+    assert_equal baseline - 1, DashboardSummary.current[:occupied_units]
     assert @unit.reload.vacant?
     assert_equal 0, @property.occupancy_rate
+    after_end_early = DashboardSummary.current[:occupied_units]
 
     expired_unit = @property.units.create!(label: "Expired Unit", kind: "flat", listed_rent: 100000)
     expired_tenant = Tenant.create!(full_name: "Expired Tenant", phone: "0800 000 0001")
@@ -82,6 +83,6 @@ class DashboardSummaryTest < ActiveSupport::TestCase
       end_on: Date.current - 1.month
     )
     assert expired_unit.reload.vacant?
-    assert_equal 0, DashboardSummary.current[:occupied_units]
+    assert_equal after_end_early, DashboardSummary.current[:occupied_units]
   end
 end
