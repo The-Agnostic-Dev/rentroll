@@ -24,6 +24,6 @@ class Unit < ApplicationRecord
 
   # Unit status is stored so lists and counts stay cheap; leases keep it in step.
   def refresh_occupancy!
-    update!(status: leases.active.exists? ? "occupied" : "vacant")
+    update!(status: leases.merge(Lease.running).exists? ? "occupied" : "vacant")
   end
 end
