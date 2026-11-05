@@ -18,7 +18,7 @@ class Lease < ApplicationRecord
   validate :ends_after_start
   validate :unit_is_free, on: :create
 
-  after_commit :sync_unit_occupancy, on: %i[create update destroy]
+  after_commit :sync_unit_occupancy, on: %i[create destroy]
   after_commit -> { DashboardSummary.expire }, on: %i[create update destroy]
 
   # Active leases running out within the next `days` days, for renewal follow-up.
