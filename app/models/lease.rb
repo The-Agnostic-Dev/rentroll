@@ -21,7 +21,7 @@ class Lease < ApplicationRecord
 
   # Active leases running out within the next `days` days, for renewal follow-up.
   def self.up_for_renewal(days, today: Date.current)
-    active.where(end_on: today..(today + days)).order(end_on: :desc)
+    active.where(end_on: today..(today + days)).order(end_on: :asc)
   end
 
   def active?
