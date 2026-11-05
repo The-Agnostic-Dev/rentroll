@@ -24,28 +24,28 @@ class DashboardSummaryTest < ActiveSupport::TestCase
   test "voiding a payment updates dashboard totals" do
     payment = PaymentRecorder.new(@lease, amount: 100000, paid_on: Date.current, payment_method: "transfer", reference: "TEST1").call
     summary_before = DashboardSummary.current
-    collected_before = summary_before.collected_this_month
+    collected_before = summary_before[:collected_this_month]
     payment.void!
     summary_after = DashboardSummary.current
-    assert_equal collected_before - 100000, summary_after.collected_this_month
+    assert_equal collected_before - 100000, summary_after[:collected_this_month]
   end
 
   test "updating a payment updates dashboard totals" do
     payment = PaymentRecorder.new(@lease, amount: 100000, paid_on: Date.current, payment_method: "transfer", reference: "TEST2").call
     summary_before = DashboardSummary.current
-    collected_before = summary_before.collected_this_month
+    collected_before = summary_before[:collected_this_month]
     payment.update!(amount: 50000)
     summary_after = DashboardSummary.current
-    assert_equal collected_before - 50000, summary_after.collected_this_month
+    assert_equal collected_before - 50000, summary_after[:collected_this_month]
   end
 
   test "destroying a payment updates dashboard totals" do
     payment = PaymentRecorder.new(@lease, amount: 100000, paid_on: Date.current, payment_method: "transfer", reference: "TEST3").call
     summary_before = DashboardSummary.current
-    collected_before = summary_before.collected_this_month
+    collected_before = summary_before[:collected_this_month]
     payment.destroy
     summary_after = DashboardSummary.current
-    assert_equal collected_before - 100000, summary_after.collected_this_month
+    assert_equal collected_before - 100000, summary_after[:collected_this_month]
   end
 
   test "ending a lease early updates dashboard totals" do
