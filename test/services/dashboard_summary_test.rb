@@ -61,4 +61,24 @@ class DashboardSummaryTest < ActiveSupport::TestCase
     summary_after = DashboardSummary.current
     assert_not_equal summary_before.to_h, summary_after.to_h
   end
+
+  test "occupied_units counts only units with a currently running lease" do
+    assert_equal 1, DashboardSummary.current[:occupied_units]
+
+    @lease.end_early!(on: Date.current)
+    assert_equal 0, DashboardSummary.current[:occupied_units]
+
+    expired_unit = @property.units.create!(label: "Expired Unit", kind: "flat", listed_rent: 100000)
+    expired_tenant = Tenant.create!(full_name: "Expired Tenant", phone: "0800 000 0001")
+    Lease.create!(
+      unit: expired_unit,
+      tenant: expired_tenant,
+      frequency: "monthly",
+      rent_amount: 100000,
+      deposit: 100000,
+      start_on: Date.current - 2.months,
+      end_on: Date.current - 1.month
+    )
+    assert_equal 0, DashboardSummary.current[:occupied_units]
+  end
 end
