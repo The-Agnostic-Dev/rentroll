@@ -18,7 +18,7 @@ class Payment < ApplicationRecord
   validates :receipt_no, presence: true
   validate :not_in_the_future
 
-  after_create_commit -> { DashboardSummary.expire }
+  after_commit -> { DashboardSummary.expire }, on: %i[create update destroy]
 
   def voided?
     voided_at.present?
