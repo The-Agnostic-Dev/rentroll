@@ -28,7 +28,7 @@ class DashboardSummary
       collected_this_month: Payment.received.where(paid_on: month).sum(:amount),
       arrears_total: ledgers.sum(&:arrears),
       late_count: ledgers.count { |ledger| ledger.status == "Late" },
-      occupied_units: Unit.occupied.count,
+      occupied_units: Unit.joins(:leases).where(leases: { status: "active" }).where("leases.start_on <= ?", today).where("leases.end_on >= ?", today).distinct.count,
       total_units: Unit.count
     }
   end
