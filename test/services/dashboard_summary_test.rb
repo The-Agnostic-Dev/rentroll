@@ -21,41 +21,44 @@ class DashboardSummaryTest < ActiveSupport::TestCase
     DashboardSummary.current
   end
 
-  test "voiding a payment expires dashboard summary cache" do
+  test "voiding a payment updates dashboard totals" do
     payment = PaymentRecorder.new(@lease, amount: 100000, paid_on: Date.current, payment_method: "transfer", reference: "TEST1").call
-    populate_cache
-    assert Rails.cache.exist?([DashboardSummary::CACHE_KEY, Date.current.iso8601])
+    summary_before = DashboardSummary.current
+    collected_before = summary_before.collected_this_month
     payment.void!
-    refute Rails.cache.exist?([DashboardSummary::CACHE_KEY, Date.current.iso8601])
+    summary_after = DashboardSummary.current
+    assert_equal collected_before - 100000, summary_after.collected_this_month
   end
 
-  test "updating a payment expires dashboard summary cache" do
+  test "updating a payment updates dashboard totals" do
     payment = PaymentRecorder.new(@lease, amount: 100000, paid_on: Date.current, payment_method: "transfer", reference: "TEST2").call
-    populate_cache
-    assert Rails.cache.exist?([DashboardSummary::CACHE_KEY, Date.current.iso8601])
+    summary_before = DashboardSummary.current
+    collected_before = summary_before.collected_this_month
     payment.update!(amount: 50000)
-    refute Rails.cache.exist?([DashboardSummary::CACHE_KEY, Date.current.iso8601])
+    summary_after = DashboardSummary.current
+    assert_equal collected_before - 50000, summary_after.collected_this_month
   end
 
-  test "destroying a payment expires dashboard summary cache" do
+  test "destroying a payment updates dashboard totals" do
     payment = PaymentRecorder.new(@lease, amount: 100000, paid_on: Date.current, payment_method: "transfer", reference: "TEST3").call
-    populate_cache
-    assert Rails.cache.exist?([DashboardSummary::CACHE_KEY, Date.current.iso8601])
+    summary_before = DashboardSummary.current
+    collected_before = summary_before.collected_this_month
     payment.destroy
-    refute Rails.cache.exist?([DashboardSummary::CACHE_KEY, Date.current.iso8601])
+    summary_after = DashboardSummary.current
+    assert_equal collected_before - 100000, summary_after.collected_this_month
   end
 
-  test "ending a lease early expires dashboard summary cache" do
-    populate_cache
-    assert Rails.cache.exist?([DashboardSummary::CACHE_KEY, Date.current.iso8601])
-    @lease.end_early!
-    refute Rails.cache.exist?([DashboardSummary::CACHE_KEY, Date.current.iso8601])
+  test "ending a lease early updates dashboard totals" do
+    summary_before = DashboardSummary.current
+    @lease.end_early!(on: Date.current)
+    summary_after = DashboardSummary.current
+    assert_not_equal summary_before.to_h, summary_after.to_h
   end
 
-  test "destroying a lease expires dashboard summary cache" do
-    populate_cache
-    assert Rails.cache.exist?([DashboardSummary::CACHE_KEY, Date.current.iso8601])
+  test "destroying a lease updates dashboard totals" do
+    summary_before = DashboardSummary.current
     @lease.destroy
-    refute Rails.cache.exist?([DashboardSummary::CACHE_KEY, Date.current.iso8601])
+    summary_after = DashboardSummary.current
+    assert_not_equal summary_before.to_h, summary_after.to_h
   end
 end
