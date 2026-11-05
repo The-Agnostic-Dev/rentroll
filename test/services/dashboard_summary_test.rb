@@ -67,7 +67,7 @@ class DashboardSummaryTest < ActiveSupport::TestCase
 
     @lease.end_early!(on: Date.current)
     assert_equal baseline - 1, DashboardSummary.current[:occupied_units]
-    assert @unit.reload.vacant?
+    assert_equal "vacant", @unit.reload.status
     assert_equal 0, @property.occupancy_rate
     after_end_early = DashboardSummary.current[:occupied_units]
 
@@ -82,7 +82,7 @@ class DashboardSummaryTest < ActiveSupport::TestCase
       start_on: Date.current - 2.months,
       end_on: Date.current - 1.month
     )
-    assert expired_unit.reload.vacant?
+    assert_equal "vacant", expired_unit.reload.status
     assert_equal after_end_early, DashboardSummary.current[:occupied_units]
   end
 end
