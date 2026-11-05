@@ -40,4 +40,22 @@ class PagesControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to lease_path(Lease.last)
     assert unit.reload.occupied?
   end
+
+  test "dashboard lists all renewals in ascending order" do
+    end_dates = [10, 20, 30, 40, 50, 60]
+    tenants = []
+    end_dates.each_with_index do |days, i|
+      unit = create_unit(label: "Renewal Unit #{i}")
+      tenant = create_tenant(full_name: "Renewal Tenant #{i + 1}")
+      create_lease(unit: unit, tenant: tenant, start_on: Date.current - 100, end_on: Date.current + days)
+      tenants << tenant.full_name
+    end
+
+    get root_path
+    assert_response :success
+
+    positions = tenants.map { |name| response.body.index(name) }
+    assert positions.all?, "expected all renewal tenants to be listed on the dashboard"
+    assert positions.each_cons(2).all? { |a, b| a < b }, "expected renewals in ascending end-date order"
+  end
 end
