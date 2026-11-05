@@ -9,6 +9,7 @@ class Lease < ApplicationRecord
   has_many :payments, -> { order(:paid_on, :id) }, dependent: :restrict_with_error
 
   scope :active, -> { where(status: "active") }
+  scope :running, ->(today: Date.current) { active.where(start_on: ..today, end_on: today..) }
 
   validates :start_on, :end_on, presence: true
   validates :frequency, inclusion: { in: FREQUENCIES }
@@ -17,7 +18,7 @@ class Lease < ApplicationRecord
   validate :ends_after_start
   validate :unit_is_free, on: :create
 
-  after_commit :sync_unit_occupancy, on: %i[create destroy]
+  after_commit :sync_unit_occupancy, on: %i[create update destroy]
   after_commit -> { DashboardSummary.expire }, on: %i[create update destroy]
 
   # Active leases running out within the next `days` days, for renewal follow-up.
@@ -27,6 +28,10 @@ class Lease < ApplicationRecord
 
   def active?
     status == "active"
+  end
+
+  def running?(today = Date.current)
+    active? && start_on <= today && end_on >= today
   end
 
   def monthly?

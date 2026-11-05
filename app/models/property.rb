@@ -7,6 +7,6 @@ class Property < ApplicationRecord
   def occupancy_rate
     return 0 if units.empty?
 
-    (units.occupied.count * 100.0 / units.size).round
+    (units.joins(:leases).merge(Lease.running).distinct.count * 100.0 / units.size).round
   end
 end
